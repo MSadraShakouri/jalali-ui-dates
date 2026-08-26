@@ -2,9 +2,9 @@ __id__ = "jalali_ui_dates"
 __name__ = "Jalali UI Dates"
 __description__ = "Globally replaces all Gregorian dates displayed in the app's UI with Jalali (Shamsi/Persian) dates. Adapts to app language (FA or EN fallback) and handles vague Last Seen statuses."
 __author__ = "MSadraShakouri"
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 __icon__ = "exteraPlugins/1"
-__min_version__ = "12.5.1"
+__min_version__ = "12.1.1"
 
 from base_plugin import BasePlugin, MethodHook
 from hook_utils import find_class
