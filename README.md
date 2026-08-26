@@ -1,5 +1,5 @@
 # Jalali UI Dates for exteraGram/AyuGram
-**Author:** [@MSadraShakouri](https://github.com/MSadraShakouri) | **Version:** 1.0.5
+**Author:** [@MSadraShakouri](https://github.com/MSadraShakouri) | **Version:** 1.0.6
 
 This plugin globally replaces Gregorian dates displayed in the app's UI with Jalali (Shamsi/Persian) dates. It intercepts Telegram's native `LocaleController` to dynamically convert and inject Jalali dates and standardized relative times across almost all text surfaces in the app.
 
