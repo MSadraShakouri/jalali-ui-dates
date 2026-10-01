@@ -1,26 +1,25 @@
 # Jalali UI Dates for exteraGram/AyuGram
-**Author:** [@MSadraShakouri](https://github.com/MSadraShakouri) | **Version:** 1.0.6
+**Author:** [@MSadraShakouri](https://github.com/MSadraShakouri) | **Version:** 1.0.9
 
-This plugin globally replaces Gregorian dates displayed in the app's UI with Jalali (Shamsi/Persian) dates. It intercepts Telegram's native `LocaleController` to dynamically convert and inject Jalali dates and standardized relative times across almost all text surfaces in the app.
+This plugin converts Gregorian dates shown in Telegram's UI to Jalali (Shamsi/Persian) dates. It hooks Telegram's native `LocaleController` to format dates and timestamps across the chat list, message timestamps, media overviews, voice notes, last-seen timestamps, call logs, group/channel joins, scheduled messages, and ban dialogs.
 
 ## Features
-- **Universal Date Hooking:** Enforces Jalali dates in the Chat List (Main Menu), In-Chat Timestamps, Media Overviews, Voice Notes, Last Seen/Online status, Call Logs, Group/Channel Joins, Scheduled Messages, and Ban dialogs.
-- **Vague Last Seen Overrides:** If a user hides their last seen, the vague relative statuses ("last seen recently", "last seen within a week", "last seen a long time ago") are universally unified to English or Persian, completely overriding the app's internal locale constraints.
-- **Strict Language Adaptation:** It seamlessly respects your active Telegram App language and standardizes the entire experience:
-  - **Persian (`fa`)**: Displays Persian months (فروردین), Persian days (شنبه), native relative texts (امروز/دیروز), Persian vague statuses (آخرین بازدید اخیراً), and uses Eastern Arabic numerals (`۰-۹`).
-  - **Other Languages (English Fallback)**: Translates to English text ("Farvardin", "Saturday", "Today", "Yesterday", "last seen within a week") and utilizes standard ASCII digits (`0-9`). This guarantees that if a user has their app set to Russian or Chinese, they still get a clean, English-based Jalali calendar system.
-- **Dependency-Free:** Calculates Jalali leap years internally using a lightweight port of standard astronomical converters. No need to install external `pip` modules.
-- **One-Click Installation:** Written in exteraGram's native `.plugin` format for instant deployment.
+- **Relative date labels are retained:** “Today”, “Yesterday”, and weekday labels continue to be used where appropriate, alongside exact Jalali dates.
+- **Native vague last-seen wording:** Statuses such as “last seen recently” and “within a week/month” are left to Telegram's own localized `formatUserStatus`; the plugin does not replace them with forced English or Persian text.
+- **Language support:**
+  - **Persian and Dari (`fa`, `prs`)**: Persian month names, relative labels, and Eastern Arabic numerals (`۰-۹`).
+  - **Chinese (`zh`)**: Chinese date order and translated labels, with Traditional wording selected for Traditional Chinese locales.
+  - **Regional languages:** Arabic (`ar`), Azerbaijani (`az`), Kurdish (`ku`, `ckb`, `kmr`), Pashto (`ps`), Tajik (`tg`), Turkish (`tr`), Urdu (`ur`), Uzbek (`uz`), Turkmen (`tk`), and Armenian (`hy`). These use localized relative labels and numeric Jalali dates; Kurdish `ku` uses locale script/region to choose Sorani or Kurmanji.
+  - **English fallback:** Used for languages without a dedicated translation. Telegram-native vague status text remains in the app's selected language.
+- **Dependency-free:** Calculates Jalali dates internally without external Python modules.
+- **One-click installation:** Packaged as exteraGram's native `.plugin` file.
 
 ## Installation
-1. Download the `jalali_ui_dates.plugin` file.
-2. Send the file to your **Saved Messages** within the exteraGram or AyuGram app.
-3. Tap on the file within the chat. A prompt will appear.
-4. Tap **INSTALL PLUGIN**.
-5. Navigate to **Settings > exteraGram/AyuGram Preferences > Plugins**, and ensure `Jalali UI Dates` is enabled.
-6. **Force close and restart** the app to purge Telegram's cached strings.
+1. Download `jalali_ui_dates.plugin`.
+2. Send the file to your **Saved Messages** in exteraGram or AyuGram.
+3. Tap the file and choose **INSTALL PLUGIN**.
+4. Go to **Settings > exteraGram/AyuGram Preferences > Plugins** and enable **Jalali UI Dates**.
+5. Force close and restart the app to refresh Telegram's cached strings.
 
 ## How It Works
-The plugin utilizes the built-in Chaquopy Xposed-style hook engine to intercept the core Java `LocaleController` methods natively. By intercepting these requests globally (including `formatUserStatus`), it overrides the layout texts and translates them uniformly before reaching the UI rendering threads.
-
-_Note: This plugin applies everywhere text dates are shown. Structural UI replacements (like replacing the interactive Date Picker Calendar View) are not covered by these simple string hooks and require native Android UI injections._
+The plugin hooks date-formatting methods in Telegram's `LocaleController` and converts their Gregorian timestamps to Jalali dates before they reach the UI. It does not hook `formatUserStatus`, so vague last-seen wording remains Telegram's own localized text. The interactive date picker is not changed; that requires native Android UI hooks.
