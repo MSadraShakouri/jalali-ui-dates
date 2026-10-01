@@ -1,15 +1,15 @@
 __id__ = "jalali_ui_dates"
 __name__ = "Jalali UI Dates"
-__description__ = "Replaces Gregorian UI dates with localized Jalali dates (Persian, Chinese, or English fallback) and omits vague relative-date labels."
+__description__ = "Replaces Gregorian UI dates with localized Jalali dates while preserving Telegram's native relative status text."
 __author__ = "MSadraShakouri"
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 __icon__ = "exteraPlugins/1"
 __min_version__ = "12.1.1"
 
 from base_plugin import BasePlugin, MethodHook
 from hook_utils import find_class
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # ==========================================
 # Language Strings & Preferences
@@ -31,6 +31,11 @@ class LangStrings:
                 "", "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد",
                 "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
             ]
+            self.weekdays = [
+                "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه", "یکشنبه"
+            ]
+            self.today = "امروز"
+            self.yesterday = "دیروز"
             self.at = " در "
             self.last_seen = "آخرین بازدید "
             self.joined = "پیوست در "
@@ -40,6 +45,11 @@ class LangStrings:
                 "", "1月", "2月", "3月", "4月", "5月", "6月",
                 "7月", "8月", "9月", "10月", "11月", "12月"
             ]
+            self.weekdays = [
+                "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"
+            ]
+            self.today = "今天"
+            self.yesterday = "昨天"
             if self.is_zh_traditional:
                 self.last_seen = "最後上線於"
             else:
@@ -52,6 +62,11 @@ class LangStrings:
                 "", "Farvardin", "Ordibehesht", "Khordad", "Tir", "Mordad",
                 "Shahrivar", "Mehr", "Aban", "Azar", "Dey", "Bahman", "Esfand"
             ]
+            self.weekdays = [
+                "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+            ]
+            self.today = "Today"
+            self.yesterday = "Yesterday"
             self.at = " at "
             self.last_seen = "last seen "
             self.joined = "joined on "
@@ -131,6 +146,19 @@ def get_jalali_from_ts(ts_seconds: int):
     jy, jm, jd = to_jalaali(dt.year, dt.month, dt.day)
     return jy, jm, jd, dt
 
+
+def get_relative_date_string(jy, jm, jd, strings):
+    now = datetime.now()
+    njy, njm, njd = to_jalaali(now.year, now.month, now.day)
+    if jy == njy and jm == njm and jd == njd:
+        return strings.today
+
+    yesterday = now - timedelta(days=1)
+    y_jy, y_jm, y_jd = to_jalaali(yesterday.year, yesterday.month, yesterday.day)
+    if jy == y_jy and jm == y_jm and jd == y_jd:
+        return strings.yesterday
+    return None
+
 # ==========================================
 # Generic Formatters
 # ==========================================
@@ -191,50 +219,76 @@ class UniversalDateHook(MethodHook):
             date_short = _format_date_short(jy, jm, jd, strings)
             date_long = _format_date_long(jy, jm, jd, strings)
             date_no_year = _format_date_no_year(jm, jd, strings)
+            rel = get_relative_date_string(jy, jm, jd, strings)
             formatted = None
 
             if self.method_name == "formatDateChat":
                 check_year = bool(param.args[1]) if len(param.args) > 1 else False
-                if jy == now_jy and not check_year:
+                if rel:
+                    formatted = rel
+                elif jy == now_jy and not check_year:
                     formatted = date_no_year
                 else:
                     formatted = date_long
 
             elif self.method_name in ("formatDate", "formatDateCallLog"):
-                formatted = date_short
+                if rel:
+                    formatted = rel
+                else:
+                    formatted = date_short
 
             elif self.method_name == "formatDateTime":
                 formatted = f"{date_short} {time_str}"
 
             elif self.method_name == "formatDateOnline":
+                made_shorter = param.args[1] if len(param.args) > 1 else None
                 last_seen = strings.last_seen
-                if not strings.is_fa and not strings.is_zh:
+                if not strings.is_fa:
                     last_seen = last_seen.capitalize()
-                formatted = f"{last_seen}{date_short}{strings.at}{time_str}"
+                if rel == strings.today:
+                    formatted = f"{last_seen}{strings.today.lower()}{strings.at}{time_str}"
+                elif rel == strings.yesterday:
+                    if made_shorter is not None:
+                        try:
+                            made_shorter[0] = True
+                        except:
+                            pass
+                    formatted = f"{last_seen}{strings.yesterday.lower()}{strings.at}{time_str}"
+                else:
+                    formatted = f"{last_seen}{date_short}{strings.at}{time_str}"
 
             elif self.method_name == "formatDateAudio":
-                formatted = f"{date_short}{strings.at}{time_str}"
+                if rel == strings.today:
+                    formatted = f"{strings.today}{strings.at}{time_str}"
+                elif rel == strings.yesterday:
+                    formatted = f"{strings.yesterday}{strings.at}{time_str}"
+                else:
+                    formatted = f"{date_short}{strings.at}{time_str}"
 
             elif self.method_name == "formatDateForBan":
                 formatted = date_long
 
             elif self.method_name == "stringForMessageListDate":
                 day_diff = dt.toordinal() - now.toordinal()
-                # Keep the app's concise clock display for today's (and very
-                # recent) messages, but use a concrete date instead of a
-                # relative weekday name for older messages.
                 if day_diff == 0 or (day_diff == -1 and (time.time() - date_ts) < 8 * 3600):
                     formatted = time_str
+                elif -7 < day_diff <= -1:
+                    formatted = strings.weekdays[dt.weekday()]
                 elif jy == now_jy:
                     formatted = date_no_year
                 else:
                     formatted = date_short
 
             elif self.method_name in ("formatSeenDate", "formatStatusExpireDateTime", "formatLocationUpdateDate", "formatStartsTime"):
-                if self.method_name == "formatStartsTime":
+                if self.method_name == "formatStartsTime" and not rel:
                     formatted = f"{date_no_year}{strings.at}{time_str}"
                 else:
-                    formatted = f"{date_short}{strings.at}{time_str}"
+                    if rel == strings.today:
+                        formatted = f"{strings.today}{strings.at}{time_str}"
+                    elif rel == strings.yesterday:
+                        formatted = f"{strings.yesterday}{strings.at}{time_str}"
+                    else:
+                        formatted = f"{date_short}{strings.at}{time_str}"
 
             elif self.method_name == "formatSectionDate":
                 formatted = _format_month_year(jy, jm, strings, jy != now_jy)
@@ -259,35 +313,13 @@ class UniversalDateHook(MethodHook):
             self.plugin.log(f"Err in {self.method_name}: {e}")
 
 
-class FormatUserStatusHook(MethodHook):
-    """Hide only vague last-seen statuses; preserve native localized status text otherwise."""
-
-    def __init__(self, plugin):
-        self.plugin = plugin
-
-    def after_hooked_method(self, param):
-        try:
-            user = param.args[1] if len(param.args) > 1 else None
-            status = getattr(user, "status", None) if user else None
-            if not status:
-                return
-
-            expires = getattr(status, "expires", None)
-            # These values represent non-specific last-seen states, for which
-            # Telegram does not provide a definitive timestamp.
-            if expires in (0, -100, -101, -102):
-                param.setResult("")
-
-        except Exception as e:
-            self.plugin.log(f"Err in formatUserStatus: {e}")
-
 # ==========================================
 # Plugin Registration
 # ==========================================
 
 class JalaliDatesPlugin(BasePlugin):
     def on_plugin_load(self):
-        self.log("Initializing Jalali Dates Hooks 1.0.7 by MSadraShakouri...")
+        self.log("Initializing Jalali Dates Hooks 1.0.8 by MSadraShakouri...")
         try:
             LocaleControllerClass = find_class("org.telegram.messenger.LocaleController")
 
@@ -307,13 +339,8 @@ class JalaliDatesPlugin(BasePlugin):
                 except Exception as ex:
                     self.log(f"Could not hook {method}: {ex}")
 
-            # Suppress only vague last-seen labels; exact timestamps and other
-            # app-native status strings remain visible in the active locale.
-            try:
-                self.hook_all_methods(LocaleControllerClass, "formatUserStatus", FormatUserStatusHook(self))
-            except Exception as ex:
-                self.log(f"Could not hook formatUserStatus: {ex}")
-
+            # Leave formatUserStatus untouched so Telegram keeps its native,
+            # localized wording for vague last-seen ranges.
             self.log("All Jalali Hooks registered successfully!")
         except Exception as e:
             self.log(f"Failed to load hooks: {e}")
