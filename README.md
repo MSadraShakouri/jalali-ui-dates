@@ -1,15 +1,16 @@
 # Jalali UI Dates for exteraGram/AyuGram
-**Author:** [@MSadraShakouri](https://github.com/MSadraShakouri) | **Version:** 1.0.8
+**Author:** [@MSadraShakouri](https://github.com/MSadraShakouri) | **Version:** 1.0.9
 
 This plugin converts Gregorian dates shown in Telegram's UI to Jalali (Shamsi/Persian) dates. It hooks Telegram's native `LocaleController` to format dates and timestamps across the chat list, message timestamps, media overviews, voice notes, last-seen timestamps, call logs, group/channel joins, scheduled messages, and ban dialogs.
 
 ## Features
-- **Relative date labels are retained:** The plugin continues to use “Today”, “Yesterday”, and weekday labels where appropriate, alongside exact Jalali dates.
-- **Native vague last-seen wording:** Statuses such as “last seen recently” and “within a week/month” are left to Telegram's own localized `formatUserStatus`; the plugin no longer replaces them with forced English or Persian text.
+- **Relative date labels are retained:** “Today”, “Yesterday”, and weekday labels continue to be used where appropriate, alongside exact Jalali dates.
+- **Native vague last-seen wording:** Statuses such as “last seen recently” and “within a week/month” are left to Telegram's own localized `formatUserStatus`; the plugin does not replace them with forced English or Persian text.
 - **Language support:**
-  - **Persian (`fa`)**: Persian month names, relative labels, and Eastern Arabic numerals (`۰-۹`).
-  - **Chinese (`zh`)**: Chinese date order and translations for relative labels and other plugin-generated words (for example, `1405年1月2日`), with Traditional Chinese wording for Traditional locales such as Taiwan, Hong Kong, and Macau.
-  - **Other languages**: English month names and plugin-generated labels, with standard ASCII digits (`0-9`). Telegram-native vague status text remains in the app's selected language.
+  - **Persian and Dari (`fa`, `prs`)**: Persian month names, relative labels, and Eastern Arabic numerals (`۰-۹`).
+  - **Chinese (`zh`)**: Chinese date order and translated labels, with Traditional wording selected for Traditional Chinese locales.
+  - **Regional languages:** Arabic (`ar`), Azerbaijani (`az`), Kurdish (`ku`, `ckb`, `kmr`), Pashto (`ps`), Tajik (`tg`), Turkish (`tr`), Urdu (`ur`), Uzbek (`uz`), Turkmen (`tk`), and Armenian (`hy`). These use localized relative labels and numeric Jalali dates; Kurdish `ku` uses locale script/region to choose Sorani or Kurmanji.
+  - **English fallback:** Used for languages without a dedicated translation. Telegram-native vague status text remains in the app's selected language.
 - **Dependency-free:** Calculates Jalali dates internally without external Python modules.
 - **One-click installation:** Packaged as exteraGram's native `.plugin` file.
 

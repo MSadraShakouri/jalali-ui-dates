@@ -1,8 +1,8 @@
 __id__ = "jalali_ui_dates"
 __name__ = "Jalali UI Dates"
-__description__ = "Replaces Gregorian UI dates with localized Jalali dates while preserving Telegram's native relative status text."
+__description__ = "Localized Jalali dates for Persian, Chinese, and regional languages; preserves Telegram's native vague status text."
 __author__ = "MSadraShakouri"
-__version__ = "1.0.8"
+__version__ = "1.0.9"
 __icon__ = "exteraPlugins/1"
 __min_version__ = "12.1.1"
 
@@ -15,16 +15,96 @@ from datetime import datetime, timedelta
 # Language Strings & Preferences
 # ==========================================
 
+REGIONAL_LANGUAGE_STRINGS = {
+    "ar": {
+        "today": "اليوم", "yesterday": "أمس",
+        "weekdays": ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"],
+        "at": " الساعة ", "last_seen": "آخر ظهور: ", "joined": "انضم في ",
+        "imported_separator": "، ", "digits": "٠١٢٣٤٥٦٧٨٩"
+    },
+    "az": {
+        "today": "Bu gün", "yesterday": "Dünən",
+        "weekdays": ["Bazar ertəsi", "Çərşənbə axşamı", "Çərşənbə", "Cümə axşamı", "Cümə", "Şənbə", "Bazar"],
+        "at": " saat ", "last_seen": "Son görülmə: ", "joined": "Qoşulub: ",
+        "imported_separator": ", "
+    },
+    "ckb": {
+        "today": "ئەمڕۆ", "yesterday": "دوێنێ",
+        "weekdays": ["دووشەممە", "سێشەممە", "چوارشەممە", "پێنجشەممە", "هەینی", "شەممە", "یەکشەممە"],
+        "at": " لە ", "last_seen": "دوایین جار بینراوە: ", "joined": "بەشداربوو لە ",
+        "imported_separator": "، ", "digits": "۰۱۲۳۴۵۶۷۸۹"
+    },
+    "kmr": {
+        "today": "Îro", "yesterday": "Duh",
+        "weekdays": ["Duşem", "Sêşem", "Çarşem", "Pêncşem", "În", "Şemî", "Yekşem"],
+        "at": " di ", "last_seen": "Dawî car hate dîtin: ", "joined": "Tevlî bû: ",
+        "imported_separator": ", "
+    },
+    "ps": {
+        "today": "نن", "yesterday": "پرون",
+        "weekdays": ["دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه", "یکشنبه"],
+        "at": " په ", "last_seen": "وروستی ځل لیدل شوی: ", "joined": "ګډون کړی په ",
+        "imported_separator": "، ", "digits": "۰۱۲۳۴۵۶۷۸۹"
+    },
+    "tg": {
+        "today": "Имрӯз", "yesterday": "Дирӯз",
+        "weekdays": ["Душанбе", "Сешанбе", "Чоршанбе", "Панҷшанбе", "Ҷумъа", "Шанбе", "Якшанбе"],
+        "at": " соати ", "last_seen": "Охирин бор дида шуд: ", "joined": "Ҳамроҳ шуд: ",
+        "imported_separator": ", "
+    },
+    "tr": {
+        "today": "Bugün", "yesterday": "Dün",
+        "weekdays": ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"],
+        "at": " saat ", "last_seen": "Son görülme: ", "joined": "Katılma tarihi: ",
+        "imported_separator": ", "
+    },
+    "ur": {
+        "today": "آج", "yesterday": "کل",
+        "weekdays": ["پیر", "منگل", "بدھ", "جمعرات", "جمعہ", "ہفتہ", "اتوار"],
+        "at": " ", "last_seen": "آخری بار دیکھا گیا: ", "joined": "شامل ہوا: ",
+        "imported_separator": "، ", "digits": "۰۱۲۳۴۵۶۷۸۹"
+    },
+    "uz": {
+        "today": "Bugun", "yesterday": "Kecha",
+        "weekdays": ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"],
+        "at": " soat ", "last_seen": "Oxirgi marta ko‘rilgan: ", "joined": "A’zo bo‘lgan: ",
+        "imported_separator": ", "
+    },
+    "tk": {
+        "today": "Şu gün", "yesterday": "Düýn",
+        "weekdays": ["Duşenbe", "Sişenbe", "Çarşenbe", "Penşenbe", "Anna", "Şenbe", "Ýekşenbe"],
+        "at": " sagat ", "last_seen": "Soňky gezek görülen: ", "joined": "Goşulan senesi: ",
+        "imported_separator": ", "
+    },
+    "hy": {
+        "today": "Այսօր", "yesterday": "Երեկ",
+        "weekdays": ["Երկուշաբթի", "Երեքշաբթի", "Չորեքշաբթի", "Հինգշաբթի", "Ուրբաթ", "Շաբաթ", "Կիրակի"],
+        "at": " ժամը ", "last_seen": "Վերջին անգամ տեսնվել է: ", "joined": "Միացել է: ",
+        "imported_separator": ", "
+    },
+}
+
+
 class LangStrings:
     def __init__(self, language="en", region="", script=""):
         self.language = str(language).lower()
         self.region = str(region).upper()
         self.script = str(script).lower()
+        if self.language in ("prs", "per", "fas"):
+            self.language = "fa"
+        elif self.language == "ku":
+            if self.script in ("arab", "adlm") or self.region in ("IR", "IQ"):
+                self.language = "ckb"
+            else:
+                self.language = "kmr"
+
         self.is_fa = self.language == "fa"
         self.is_zh = self.language == "zh"
         self.is_zh_traditional = self.is_zh and (
             self.script == "hant" or self.region in ("TW", "HK", "MO")
         )
+        self.numeric_dates = False
+        self.digit_translation = None
 
         if self.is_fa:
             self.months = [
@@ -40,6 +120,7 @@ class LangStrings:
             self.last_seen = "آخرین بازدید "
             self.joined = "پیوست در "
             self.imported_separator = ", "
+            self.digit_translation = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
         elif self.is_zh:
             self.months = [
                 "", "1月", "2月", "3月", "4月", "5月", "6月",
@@ -52,11 +133,25 @@ class LangStrings:
             self.yesterday = "昨天"
             if self.is_zh_traditional:
                 self.last_seen = "最後上線於"
+                self.joined = "加入於"
             else:
                 self.last_seen = "最后上线于"
-            self.joined = "加入於" if self.is_zh_traditional else "加入于"
+                self.joined = "加入于"
             self.at = " "
             self.imported_separator = "，"
+        elif self.language in REGIONAL_LANGUAGE_STRINGS:
+            localized = REGIONAL_LANGUAGE_STRINGS[self.language]
+            self.months = [""] + [f"{month:02d}" for month in range(1, 13)]
+            self.weekdays = localized["weekdays"]
+            self.today = localized["today"]
+            self.yesterday = localized["yesterday"]
+            self.at = localized["at"]
+            self.last_seen = localized["last_seen"]
+            self.joined = localized["joined"]
+            self.imported_separator = localized["imported_separator"]
+            self.numeric_dates = True
+            if localized.get("digits"):
+                self.digit_translation = str.maketrans("0123456789", localized["digits"])
         else:
             self.months = [
                 "", "Farvardin", "Ordibehesht", "Khordad", "Tir", "Mordad",
@@ -73,8 +168,8 @@ class LangStrings:
             self.imported_separator = ", "
 
     def to_digits(self, text: str) -> str:
-        if self.is_fa:
-            return text.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
+        if self.digit_translation:
+            return text.translate(self.digit_translation)
         return text
 
 
@@ -176,12 +271,16 @@ def _format_date_short(jy, jm, jd, strings):
 def _format_date_long(jy, jm, jd, strings):
     if strings.is_zh:
         return f"{jy}年{strings.months[jm]}{jd}日"
+    if strings.numeric_dates:
+        return _format_date_short(jy, jm, jd, strings)
     return f"{jd} {strings.months[jm]} {jy}"
 
 
 def _format_date_no_year(jm, jd, strings):
     if strings.is_zh:
         return f"{strings.months[jm]}{jd}日"
+    if strings.numeric_dates:
+        return f"{jm:02d}/{jd:02d}"
     return f"{jd} {strings.months[jm]}"
 
 
@@ -190,6 +289,10 @@ def _format_month_year(jy, jm, strings, include_year=True):
         if include_year:
             return f"{jy}年{strings.months[jm]}"
         return strings.months[jm]
+    if strings.numeric_dates:
+        if include_year:
+            return f"{jy}/{jm:02d}"
+        return f"{jm:02d}"
     if include_year:
         return f"{strings.months[jm]} {jy}"
     return strings.months[jm]
@@ -319,7 +422,7 @@ class UniversalDateHook(MethodHook):
 
 class JalaliDatesPlugin(BasePlugin):
     def on_plugin_load(self):
-        self.log("Initializing Jalali Dates Hooks 1.0.8 by MSadraShakouri...")
+        self.log("Initializing Jalali Dates Hooks 1.0.9 by MSadraShakouri...")
         try:
             LocaleControllerClass = find_class("org.telegram.messenger.LocaleController")
 
